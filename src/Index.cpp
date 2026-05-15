@@ -33,6 +33,11 @@ void Index::incarcaDocumenteDinDirector(const std::string& caleDirector) {
                 continue;
             }
 
+            const std::string numeFisier = entry.path().filename().string();
+            if (!numeFisier.empty() && numeFisier[0] == '.') {
+                continue;
+            }
+
             const std::string caleFisier = entry.path().string();
             if (esteFisierText(caleFisier)) {
                 m_documente.emplace_back(caleFisier);
@@ -72,12 +77,15 @@ std::map<std::string, std::map<std::string, std::vector<int>>> Index::cauta(cons
     std::istringstream iss(query);
     std::string token;
     std::vector<std::string> cuvinte;
-    std::string op = "OR"; // Default to OR
+    std::string op = "AND"; // Default la AND
+
+    // Folosim OR?
+    if (query.find(" OR ") != std::string::npos) {
+        op = "OR";
+    }
 
     while (iss >> token) {
-        if (token == "AND" || token == "OR") {
-            op = token;
-        } else {
+        if (token != "AND" && token != "OR") {
             cuvinte.push_back(token);
         }
     }
@@ -104,8 +112,8 @@ std::map<std::string, std::map<std::string, std::vector<int>>> Index::cauta(cons
             }
         }
     } else { // AND
-        // For AND, we find documents that contain ALL keywords.
-        // The result structure will show which lines each keyword is on within those common documents.
+        // Gasim documente ce contin toate cuvintele
+        // Afisam fiecare linie pe care se afla fiecare cuvant
         std::map<std::string, std::vector<int>> documenteComune;
         bool primulCuvant = true;
 
@@ -118,7 +126,7 @@ std::map<std::string, std::map<std::string, std::vector<int>>> Index::cauta(cons
                 std::map<std::string, std::vector<int>> tempDocs;
                 for (auto const& [doc, linii] : documenteComune) {
                     if (rezultatCuvant.count(doc)) {
-                        tempDocs[doc] = {}; // Keep the doc, lines will be populated later
+                        tempDocs[doc] = {}; // Populam liniile mai tarziu
                     }
                 }
                 documenteComune = tempDocs;
