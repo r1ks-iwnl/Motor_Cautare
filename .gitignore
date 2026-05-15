@@ -1,10 +1,11 @@
-# CMake / build artifacts
+# CMake / build
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 build/
+log.txt
 
-# object / binary files
+# binare
 *.o
 *.o.d
 *.exe
@@ -14,9 +15,12 @@ build/
 *.pdb
 *.ilk
 
-# editor / OS junk
+# editor / OS
 .DS_Store
 Thumbs.db
 .vscode/
 *.swp
 *.pyc
+
+# imgui
+imgui.ini

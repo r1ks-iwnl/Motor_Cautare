@@ -15,7 +15,7 @@ public:
     void incarcaDocumenteDinDirector(const std::string& caleDirector);
     void construiesteIndex();
     std::map<std::string, std::map<std::string, std::vector<int>>> cauta(const std::string& query);
-
+    std::map<std::string, std::vector<int>> cautaUnSingurCuvant(const std::string& cuvant);
     std::vector<Document>& obtineDocumente();
 
 private:
@@ -24,7 +24,6 @@ private:
     std::unordered_set<std::string> m_stopwords;
 
     void incarcaStopwords(const std::string& caleFisier);
-    std::map<std::string, std::vector<int>> cautaUnSingurCuvant(const std::string& cuvant);
     static std::string normalizeazaCuvant(const std::string& cuvant);
     static bool esteFisierText(const std::string& caleFisier);
 };

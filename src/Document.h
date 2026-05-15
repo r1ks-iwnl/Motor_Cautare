@@ -11,8 +11,6 @@ public:
     void notificaCautare(const std::string& cuvant) {
         notifica("S-a cautat cuvantul: " + cuvant);
     }
-    // ... existing code
-    
         Document(const std::string& caleFisier);
         //referinta, read-only
         const std::string& obtineCaleFisier() const;
