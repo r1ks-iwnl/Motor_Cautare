@@ -1,6 +1,3 @@
-[submodule "build/vendor/imgui"]
-	path = build/vendor/imgui
-	url = https://github.com/ocornut/imgui.git
 [submodule "vendor/imgui"]
 	path = vendor/imgui
 	url = https://github.com/ocornut/imgui.git
