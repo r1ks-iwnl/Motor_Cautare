@@ -1,0 +1,33 @@
+name: C++ Unit Tests (CI)
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive # pentru ImGUI
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git libglfw3-dev libopengl-dev
+
+    - name: Configure CMake
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Run Unit Tests
+      working-directory: ${{github.workspace}}/build
+      run: ctest --output-on-failure
+      # pentru add_test din CMakeLists
