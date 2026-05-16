@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 Document::Document(const std::string& caleFisier) : m_caleFisier(caleFisier) {
     incarcaContinut();
@@ -23,6 +24,7 @@ void Document::incarcaContinut() {
         m_continut = buffer.str();
         fisier.close();
     } else {
-        std::cerr << "Nu s-a putut deschide fisierul: " << m_caleFisier << std::endl;
+        std::filesystem::path caleAbsoluta = std::filesystem::absolute(m_caleFisier);
+        std::cerr << "Nu s-a putut deschide fisierul: " << caleAbsoluta << std::endl;
     }
 }

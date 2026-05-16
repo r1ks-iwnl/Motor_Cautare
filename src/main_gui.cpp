@@ -44,8 +44,8 @@ int main(int, char**) {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Starea aplicatiei
-    Index index("../stopwords.txt");
-    Logger logger("../log.txt");
+    Index index("./stopwords.txt");
+    Logger logger("./log.txt");
     index.adaugaObserver(&logger);
     
     char folderPath[128] = ".";

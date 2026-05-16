@@ -14,7 +14,8 @@ Index::Index(const std::string& stopwordsPath) {
 void Index::incarcaStopwords(const std::string& caleFisier) {
     std::ifstream fisier(caleFisier);
     if (!fisier.is_open()) {
-        std::cerr << "Nu s-a putut deschide fisierul de stopwords: " << caleFisier << std::endl;
+        std::filesystem::path caleAbsoluta = std::filesystem::absolute(caleFisier);
+        std::cerr << "Nu s-a putut deschide fisierul de stopwords: " << caleAbsoluta << std::endl;
         return;
     }
 

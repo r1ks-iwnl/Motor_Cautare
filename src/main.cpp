@@ -6,7 +6,7 @@
 
 int main() {
     Logger logger("log.txt");
-    Index index("../stopwords.txt");
+    Index index("./stopwords.txt");
     index.adaugaObserver(&logger);
 
     std::cout << "Se încarcă documentele și se construiește indexul..." << std::endl;
