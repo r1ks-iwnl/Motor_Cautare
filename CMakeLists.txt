@@ -21,7 +21,7 @@ find_package(OpenGL REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GLFW REQUIRED glfw3)
 
-# Main executable (now with GUI)
+# GUI executable
 add_executable(motor_cautare_gui src/main_gui.cpp src/Document.cpp src/Index.cpp src/Logger.cpp)
 
 # Link libraries to the GUI executable
@@ -29,7 +29,7 @@ target_link_libraries(motor_cautare_gui PRIVATE imgui OpenGL::GL ${GLFW_LIBRARIE
 target_include_directories(motor_cautare_gui PRIVATE ${GLFW_INCLUDE_DIRS})
 
 
-# Original CLI executable (renamed)
+# CLI executable
 add_executable(motor_cautare_cli src/main.cpp src/Document.cpp src/Index.cpp src/Logger.cpp)
 
 # Tests executable
