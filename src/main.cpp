@@ -1,16 +1,60 @@
 #include "Index.h"
 #include "Logger.h"
 
+#include <filesystem>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <map>
 
-int main() {
-    Logger logger("log.txt");
-    Index index("./stopwords.txt");
+#include <limits.h>
+#include <unistd.h>
+
+namespace {
+
+std::filesystem::path obtineDirectorExecutabil() {
+    char buffer[PATH_MAX + 1] = {0};
+    const ssize_t lungime = ::readlink("/proc/self/exe", buffer, PATH_MAX);
+    if (lungime <= 0) {
+        return std::filesystem::current_path();
+    }
+
+    return std::filesystem::path(std::string(buffer, static_cast<size_t>(lungime))).parent_path();
+}
+
+std::string obtineDirectorImplicitCautare() {
+    const std::filesystem::path directorExecutabil = obtineDirectorExecutabil();
+    const std::filesystem::path directorProiect = directorExecutabil.parent_path().empty()
+        ? directorExecutabil
+        : directorExecutabil.parent_path();
+
+    return directorProiect.string();
+}
+
+} // namespace
+
+int main(int argc, char* argv[]) {
+    const std::string directorImplicit = obtineDirectorImplicitCautare();
+    const std::filesystem::path caleStopwords = std::filesystem::path(directorImplicit) / "stopwords.txt";
+
+    Logger logger((std::filesystem::path(directorImplicit) / "log.txt").string());
+    Index index(caleStopwords.string());
     index.adaugaObserver(&logger);
 
-    std::cout << "Se încarcă documentele și se construiește indexul..." << std::endl;
-    index.incarcaDocumenteDinDirector(".");
+    std::string directorCautare = directorImplicit;
+    if (argc > 1 && argv[1] != nullptr && std::string(argv[1]).size() > 0) {
+        directorCautare = argv[1];
+    } else {
+        std::cout << "Director de cautare [" << directorImplicit << "]: ";
+        std::string input;
+        std::getline(std::cin, input);
+        if (!input.empty()) {
+            directorCautare = input;
+        }
+    }
+
+    std::cout << "Se încarcă documentele din '" << directorCautare << "' și se construiește indexul..." << std::endl;
+    index.incarcaDocumenteDinDirector(directorCautare);
     index.construiesteIndex();
     std::cout << "Indexare finalizată." << std::endl;
 

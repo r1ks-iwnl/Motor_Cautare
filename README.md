@@ -20,6 +20,8 @@ Pentru a compila și rula acest proiect, veți avea nevoie de următoarele:
 *   **OpenGL**
 *   **GLFW**
 
+Funcționalitatea ImGUI și dependențele relevante pot fi ignorate comentând/eliminând liniile 9-29 din CMakeLists.txt
+
 ### Instalarea Dependințelor 
 
 Puteți instala majoritatea dependențelor folosind managerul de pachete `apt`:
@@ -61,7 +63,10 @@ sudo apt-get install build-essential cmake git libglfw3-dev libopengl-dev
    * **Versiunea CLI:**
      ```bash
      ./build/motor_cautare_cli
+       ./build/motor_cautare_cli path
      ```
+       Dacă nu dați niciun argument ca path, programul folosește implicit directorul proiectului, iar la pornire puteți introduce o cale diferită.
+
    * **Versiunea GUI:**
      ```bash
      ./build/motor_cautare_gui
@@ -81,4 +86,3 @@ Documentația extinsă este în [docs/Documentatie.md](docs/Documentatie.md). Ac
 ## Integrare GitHub Actions
 
 Repository-ul include workflow-ul [tests.yml](.github/workflows/tests.yml), care compilează proiectul și rulează automat testele prin `ctest` la fiecare `push` sau `pull_request` pe branch-urile `main`, `master` și `develop`.
-
