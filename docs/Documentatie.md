@@ -19,21 +19,106 @@ Aplicația a fost eventual modificată pentru a reduce memoria ocupată pentru f
 
 Aceste optimizări au redus memoria consumată pentru indexarea unui .txt de 1GB pe o linie de la ~5GB la 64KB, și multiline la ~800MB.
 
-## 4. Caracteristici de Căutare
+## 4. Code Flow și Execuție
 
-### 4.1. Căutare Standard și Phrase Search
+### 4.1. Inițializare și Încărcare (CLI și GUI)
+```
+main() 
+  ↓
+Inițializare Index (cu cale stopwords.txt)
+  ↓
+Adăugare Logger ca Observer
+  ↓
+incarcaDocumenteDinDirector(cale)
+  ├─→ Scanare filesystem pentru .txt files
+  ├─→ Excludere log.txt, stopwords.txt
+  └─→ Creare obiecte Document pentru fiecare fișier
+  ↓
+construiesteIndex()
+  ├─→ Pentru fiecare Document: proceseazaCuvinte() (chunk-reading, callback-based)
+  ├─→ Normalizare: lowercase, alphanumeric only
+  ├─→ Filtrare stopwords
+  └─→ Construire Inverted Index: unordered_map<cuvânt, vector<docId, linii>>
+  ↓
+Sistem gata pentru interogări
+```
+
+### 4.2. Procesare Interogare (Search Query)
+```
+User input query
+  ↓
+Index::cauta(query)
+  ├─→ Detectare Phrase Search (dacă query e între ghilimele)
+  │    ├─→ Normalizare frază
+  │    └─→ cautaFrazaExactaInDocument() pentru fiecare Document
+  │         (verifica dacă fraza apare exact pe aceeași linie)
+  │
+  └─→ Detectare AND/OR/Standard semantics
+       ├─→ extrageCuvinte() + filtrare stopwords
+       ├─→ Căutare în Index: documente care conțin cuvintele
+       └─→ Intersecție (AND) sau uniune (OR) de documente
+  ↓
+Rezultat: unordered_map<cuvânt, unordered_map<doc, vector<linii>>>
+```
+
+### 4.3. Afișare Rezultate (CLI vs GUI)
+
+**CLI Flow:**
+```
+SearchResults::construiesteRezultateSortate()
+  ├─→ Transformare index → vector<DocumentRezultat>
+  └─→ Sortare descendent după scor
+  ↓
+Pentru fiecare Document:
+  ├─→ Citire fișier linie cu linie
+  ├─→ extrageCuvintePentruHighlight() din query
+  ├─→ evidentiazaTextCuCuvant() (regex + boundary check)
+  ├─→ Afișare cu coduri ANSI pentru highlight
+  └─→ Log în log.txt prin Logger Observer
+```
+
+**GUI Flow:**
+```
+incarcaFontCuDiacritice() (fallback: vendor fonts → sistem fonts)
+  ↓
+ImGui render loop
+  ├─→ Input: searchQuery + Button "Cauta"
+  ├─→ Index::cauta(searchQuery)
+  └─→ Construire GUI-local GuiDocInfo (struct temporary)
+       ├─→ Iterare rezultate: mapare doc → linii
+       ├─→ Sortare după scor
+       └─→ Pentru fiecare linie:
+            ├─→ gasesteSpanuriPentruCuvinte() (calculeaza match positions)
+            ├─→ renderWrappedColoredText() (wrapping + inline highlight)
+            └─→ Afișare cu ImGui::TextColored (galben pentru matches)
+```
+
+### 4.4. Observer Pattern: Logging
+```
+Index::cauta() exec
+  ↓
+notifica("Cautare: '<query>'")
+  ├─→ Observable::notifica() iterează m_observers
+  └─→ Logger::update() apelat pentru fiecare Observer
+       ├─→ Timestamp + mesaj
+       └─→ Scriere în log.txt (append mode)
+```
+
+## 5. Caracteristici de Căutare
+
+### 5.1. Căutare Standard și Phrase Search
 - **Căutare standard:** Interogări separate prin spații sunt combinate cu semantica AND (implicit). Cuvintele în `stopwords.txt` sunt ignorate automat.
 - **Phrase Search:** Termeni închiși în ghilimele (ex: `"exact phrase"`) sunt tratați ca o frază exactă și se caută pe aceeași linie, într-o ordine și poziție specifice.
 - **Excludere fișiere sistem:** Fișierele `log.txt` și `stopwords.txt` sunt excluse din indexare pentru a evita rezultate înșelătoare.
 
-### 4.2. Highlighting și Afișare Rezultate
+### 5.2. Highlighting și Afișare Rezultate
 - **Inline Highlighting (GUI):** Textul din rezultate afișează termenii potriviți în galben, cu wrapping automat la limita ferestrei.
 - **CLI Highlighting:** Termenii sunt evidențiați cu coduri ANSI în ieșirea consolei.
 - **Span-uri de Potrivire:** Funcția `gasesteSpanuriPentruCuvinte` calculează pozițiile (byte offset-uri) pentru fiecare termen potrivit, evitând suprapuneri și verificând granițe de cuvânt.
 
-## 5. Utilități și Componente de Rezultate
+## 6. Utilități și Componente de Rezultate
 
-### 5.1. SearchResults
+### 6.1. SearchResults
 Modulul `SearchResults` furnizează funcții helper pentru construirea și afișarea rezultatelor de căutare:
 
 - **`extrageCuvintePentruHighlight(query: string) → vector<string>`**  
@@ -48,19 +133,19 @@ Modulul `SearchResults` furnizează funcții helper pentru construirea și afiș
 - **`afiseazaRezultatePentruDocument(docInfo, cuvinteHighlight)`**  
   Afișează în consolă (CLI) liniile potrivite cu highlighting în culori ANSI.
 
-### 5.2. Structuri de Rezultate
+### 6.2. Structuri de Rezultate
 
 - **`LinieRezultat`:** Conține vectorul de cuvinte potrivite pe o linie specifică.
 - **`DocumentRezultat`:** Încapsulează calea fișierului, scorul (numărul de potriviri) și o hartă de linii cu termenii lor potriviți.
 - **`MatchSpan`:** Definește o potrivire: `start` (offset), `length` (lungimea în bytes), `term` (termenul potrivit).
 
-## 6. Interfața GUI
+## 7. Interfața GUI
 
-### 6.1. Highlighting și Wrapping
+### 7.1. Highlighting și Wrapping
 - GUI-ul afișează textul liniilor potrivite cu termenii evidențiați inline în galben.
 - Textul se rupe pe randuri atunci când depășește lățimea ferestrei disponibile, păstrând colori și indentarea.
 
-### 6.2. Gestionarea Fonturilor
+### 7.2. Gestionarea Fonturilor
 GUI-ul încearcă să înccarce un font TTF cu suport pentru caractere diactrice românești (gliph-uri din intervalul Latin Extended A+B):
 
 1. **Font din proiect:** `vendor/imgui/misc/fonts/DroidSans.ttf` sau `Roboto-Medium.ttf`
@@ -69,7 +154,7 @@ GUI-ul încearcă să înccarce un font TTF cu suport pentru caractere diactrice
 
 Această abordare asigură portabilitate și nu depinde de configurații fixe ale sistemului.
 
-## 7. Testare și Integrare Continuă
+## 8. Testare și Integrare Continuă
 Proiectul include teste unitare simple în `tests/test_index.cpp`, compilate ca executabil separat prin CMake și rulate automat cu `ctest`.
 
 Pentru integrarea pe GitHub, repository-ul conține workflow-ul `.github/workflows/tests.yml`, care execută următorii pași la `push` și `pull_request`:
@@ -80,7 +165,7 @@ Pentru integrarea pe GitHub, repository-ul conține workflow-ul `.github/workflo
 
 Această integrare permite verificarea automată a proiectului înainte de acceptarea modificărilor și ajută la menținerea unei baze de cod stabile.
 
-## 8. Diagrama UML (Simplificată)
+## 9. Diagrama UML (Simplificată)
 ```mermaid
 classDiagram
     class Observer {
